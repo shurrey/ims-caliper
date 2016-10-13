@@ -1,6 +1,6 @@
 {
   "name": "ims-caliper",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Node Module based on the IMS Global Caliper JS Public package.",
   "main": "index.js",
   "scripts": {
