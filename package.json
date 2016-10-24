@@ -1,6 +1,6 @@
 {
   "name": "ims-caliper",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Node Module based on the IMS Global Caliper JS Public package.",
   "main": "index.js",
   "scripts": {
@@ -22,27 +22,17 @@
 	    "url": "^0.10.1"
   },
   "devDependencies": {
-	    "caterpillar": "^2.0.7",
-	    "caterpillar-browser": "^2.0.1",
-	    "caterpillar-filter": "^2.0.3",
-	    "caterpillar-human": "^2.1.2",
 	    "deep-diff": "^0.3.0",
-	    "fs": "0.0.2",
 	    "grunt": "^0.4.5",
 	    "grunt-browserify": "^3.1.0",
 	    "grunt-http-server": "^1.0.0",
 	    "grunt-jsdoc": "^0.5.7",
 	    "grunt-tape": "0.0.2",
-	    "http-browserify": "^1.7.0",
-	    "https-browserify": "0.0.0",
 	    "jsonfile": "^2.0.0",
 	    "karma": "^0.12.25",
 	    "karma-browserify": "^1.0.0",
 	    "moment": "^2.10.1",
-	    "q": "^1.0.1",
-	    "querystring": "^0.2.0",
-	    "tape": "^3.0.3",
-	    "url": "^0.10.1"
+	    "tape": "^3.0.3"
   },
   "repository": {
     "type": "git",
