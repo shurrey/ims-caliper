@@ -1,5 +1,5 @@
 # ims-caliper
-This project is a basic node_module based on @IMSGlobal's caliper_JS_public project.
+This project is a basic node_module implementing IMS Caliper 1.1 based on @IMSGlobal's caliper-js project.
 
 To Install:
 

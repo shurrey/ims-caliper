@@ -1,217 +1,230 @@
-var client 			= require('./lib/client'),
+var client 			= require('./lib/clients/httpClient'),
+    envelope		= require('./lib/envelope'),
 	logger 			= require('./lib/logger'),
 	sensor 			= require('./lib/sensor'),
-	
-	// ACTIONS
-	annotationActions     = require('./lib/actions/annotationActions'),
-	assessmentActions     = require('./lib/actions/assessmentActions'),
-	assessmentItemActions = require('./lib/actions/assessmentItemActions'),
-	assignableActions     = require('./lib/actions/assignableActions'),
-	mediaActions          = require('./lib/actions/mediaActions'),
-	navigationActions     = require('./lib/actions/navigationActions'),
-	outcomeActions        = require('./lib/actions/outcomeActions'),
-	readingActions        = require('./lib/actions/readingActions'),
-	sessionActions        = require('./lib/actions/sessionActions'),
 
-	// CONTEXT
-	context = require('./lib/context/context'),
+/**
+ * Add the modules that need to be exported under the Caliper namespace.
+ * You only need to require the top-level modules. Browserify will walk the
+ * dependency graph and load everything correctly.
+ */
 
-	// ENTITIES
-	entity     = require('./lib/entities/entity'),
-	entityType = require('./lib/entities/entityType'),
+// Actions
+actions                   = require('./lib/actions/actions');
 
-	// Core entities
-	digitalResource     = require('./lib/entities/digitalResource'),
-	digitalResourceType = require('./lib/entities/digitalResourceType'),
-	learningObjective   = require('./lib/entities/learningObjective'),
+// Config
+config                    = require('./lib/config/config');
 
-	// Agent entities
-	organization        = require('./lib/entities/agent/organization'),
-	person              = require('./lib/entities/agent/person'),
-	softwareApplication = require('./lib/entities/agent/softwareApplication'),
+// Envelope
+envelope                  = require('./lib/envelope');
 
-	// Annotation entities
-	annotation          = require('./lib/entities/annotation/annotation'),
-	annotationType      = require('./lib/entities/annotation/annotationType'),
-	bookmarkAnnotation  = require('./lib/entities/annotation/bookmarkAnnotation'),
-	highlightAnnotation = require('./lib/entities/annotation/highlightAnnotation'),
-	sharedAnnotation    = require('./lib/entities/annotation/sharedAnnotation'),
-	tagAnnotation       = require('./lib/entities/annotation/tagAnnotation'),
+// Entities
+entity                    = require('./lib/entities/entity');
+entityFactory             = require('./lib/entities/entityFactory');
+entityType                = require('./lib/entities/entityType');
 
-	// Assignment entities
-	assessment          = require('./lib/entities/assessment/assessment'),
-	assessmentItem      = require('./lib/entities/assessment/assessmentItem'),
+// Agents
+agent                     = require('./lib/entities/agent/agent');
+person                    = require('./lib/entities/agent/person');
+softwareApplication       = require('./lib/entities/agent/softwareApplication');
 
-	// Assignable entities
-	assignableDigitalResource     = require('./lib/entities/assignable/assignableDigitalResource'),
-	assignableDigitalResourceType = require('./lib/entities/assignable/assignableDigitalResourceType'),
-	attempt                       = require('./lib/entities/assignable/attempt'),
+// Agents (Organizations)
+courseOffering            = require('./lib/entities/agent/courseOffering');
+courseSection             = require('./lib/entities/agent/courseSection');
+group                     = require('./lib/entities/agent/group');
+membership                = require('./lib/entities/agent/membership');
+organization              = require('./lib/entities/agent/organization');
+role                      = require('./lib/entities/agent/role');
+status                    = require('./lib/entities/agent/status');
 
-	// LIS entities
-	courseOffering = require('./lib/entities/lis/courseOffering'),
-	courseSection  = require('./lib/entities/lis/courseSection'),
-	group          = require('./lib/entities/lis/group'),
-	membership     = require('./lib/entities/lis/membership'),
-	role           = require('./lib/entities/lis/role'),
-	status         = require('./lib/entities/lis/status'),
+// Annotations
+annotation                = require('./lib/entities/annotation/annotation');
+bookmarkAnnotation        = require('./lib/entities/annotation/bookmarkAnnotation');
+highlightAnnotation       = require('./lib/entities/annotation/highlightAnnotation');
+sharedAnnotation          = require('./lib/entities/annotation/sharedAnnotation');
+tagAnnotation             = require('./lib/entities/annotation/tagAnnotation');
 
-	// Media Entities
-	mediaObject       = require('./lib/entities/media/mediaObject'),
-	mediaObjectType   = require('./lib/entities/media/mediaObjectType'),
-	mediaLocation     = require('./lib/entities/media/mediaLocation'),
-	audioObject       = require('./lib/entities/media/audioObject'),
-	imageObject       = require('./lib/entities/media/imageObject'),
-	videoObject       = require('./lib/entities/media/videoObject'),
+// Assignment-related
+attempt                   = require('./lib/entities/resource/attempt');
+learningObjective         = require('./lib/entities/resource/learningObjective');
 
-	// Outcome Entities
-	result = require('./lib/entities/outcome/result'),
+// Resources
+assessment                = require('./lib/entities/resource/assessment');
+assessmentItem            = require('./lib/entities/resource/assessmentItem');
+assignableDigitalResource = require('./lib/entities/resource/assignableDigitalResource');
+audioObject               = require('./lib/entities/resource/audioObject');
+chapter                   = require('./lib/entities/resource/chapter');
+digitalResource           = require('./lib/entities/resource/digitalResource');
+digitalResourceCollection = require('./lib/entities/resource/digitalResourceCollection');
+document                  = require('./lib/entities/resource/document');
+forum                     = require('./lib/entities/resource/forum');
+frame                     = require('./lib/entities/resource/frame');
+imageObject               = require('./lib/entities/resource/imageObject');
+mediaObject               = require('./lib/entities/resource/mediaObject');
+mediaLocation             = require('./lib/entities/resource/mediaLocation');
+message                   = require('./lib/entities/resource/message');
+page                      = require('./lib/entities/resource/page');
+thread                    = require('./lib/entities/resource/thread');
+videoObject               = require('./lib/entities/resource/videoObject');
+webPage                   = require('./lib/entities/resource/webPage');
 
-	// Reading Entities
-	ePubChapter    = require('./lib/entities/reading/ePubChapter'),
-	ePubPart       = require('./lib/entities/reading/ePubPart'),
-	ePubSubChapter = require('./lib/entities/reading/ePubSubChapter'),
-	ePubVolume     = require('./lib/entities/reading/ePubVolume'),
-	frame          = require('./lib/entities/reading/frame'),
-	reading        = require('./lib/entities/reading/reading'),
-	webPage        = require('./lib/entities/reading/webPage'),
+// Outcome
+result                    = require('./lib/entities/outcome/result');
+score                     = require('./lib/entities/outcome/score');
 
-	// Response Entities
-	response                 = require('./lib/entities/response/response'),
-	responseType             = require('./lib/entities/response/responseType'),
-	fillinBlankResponse      = require('./lib/entities/response/fillinBlankResponse'),
-	multipleChoiceResponse   = require('./lib/entities/response/multipleChoiceResponse'),
-	multipleResponseResponse = require('./lib/entities/response/multipleResponseResponse'),
-	selectTextResponse       = require('./lib/entities/response/selectTextResponse'),
-	trueFalseResponse        = require('./lib/entities/response/trueFalseResponse'),
+// Response
+response                  = require('./lib/entities/response/response');
+fillinBlankResponse       = require('./lib/entities/response/fillinBlankResponse');
+multipleChoiceResponse    = require('./lib/entities/response/multipleChoiceResponse');
+multipleResponseResponse  = require('./lib/entities/response/multipleResponseResponse');
+selectTextResponse        = require('./lib/entities/response/selectTextResponse');
+trueFalseResponse         = require('./lib/entities/response/trueFalseResponse');
 
-	// Session Entities
-	session = require('./lib/entities/session/session'),
+// Session
+session                   = require('./lib/entities/session/session');
+ltiSession                = require('./lib/entities/session/ltiSession');
 
-	// EVENTS
-	event               = require('./lib/events/event'),
-	eventType           = require('./lib/events/eventType'),
-	annotationEvent     = require('./lib/events/annotationEvent'),
-	assessmentEvent     = require('./lib/events/assessmentEvent'),
-	assessmentItemEvent = require('./lib/events/assessmentItemEvent'),
-	assignableEvent     = require('./lib/events/assignableEvent'),
-	mediaEvent          = require('./lib/events/mediaEvent'),
-	navigationEvent     = require('./lib/events/navigationEvent'),
-	outcomeEvent        = require('./lib/events/outcomeEvent'),
-	sessionEvent        = require('./lib/events/sessionEvent'),
-	viewEvent           = require('./lib/events/viewEvent'),
+// Events
+event                     = require('./lib/events/event');
+eventFactory              = require('./lib/events/eventFactory');
+eventType                 = require('./lib/events/eventType');
+annotationEvent           = require('./lib/events/annotationEvent');
+assessmentEvent           = require('./lib/events/assessmentEvent');
+assessmentItemEvent       = require('./lib/events/assessmentItemEvent');
+assignableEvent           = require('./lib/events/assignableEvent');
+forumEvent                = require('./lib/events/forumEvent');
+mediaEvent                = require('./lib/events/mediaEvent');
+messageEvent              = require('./lib/events/messageEvent');
+navigationEvent           = require('./lib/events/navigationEvent');
+gradeEvent                = require('./lib/events/gradeEvent');
+sessionEvent              = require('./lib/events/sessionEvent');
+threadEvent               = require('./lib/events/threadEvent');
+toolUseEvent              = require('./lib/events/toolUseEvent');
+viewEvent                 = require('./lib/events/viewEvent');
 
-	// REQUEST
-	envelope            = require('./lib/request/envelope'),
-	eventStoreRequestor = require('./lib/request/eventStoreRequestor'),
-	httpRequestor      = require('./lib/request/httpRequestor');
+// Selectors
+textPositionSelector      = require('./lib/selectors/textPositionSelector');
+
+// Sensor clients
+clientUtils               = require('./lib/clients/clientUtils');
+httpClient                = require('./lib/clients/httpClient');
+httpOptions               = require('./lib/clients/httpOptions');
+
+// Validators
+validator                 = require('./lib/validators/validator');
+entityValidator           = require('./lib/validators/entityValidator');
+eventValidator            = require('./lib/validators/eventValidator');
 
 
 module.exports = {
 		
 		Client: client,
-	 	Logger: logger,
+		Logger: logger,
 		Sensor: sensor,
 		
-		// ACTIONS
-		AnnotationActions: annotationActions,
-		AssessmentActions: assessmentActions,
-		AssessmentItemActions: assessmentItemActions,
-		AssignableActions: assignableActions,
-		MediaActions: mediaActions,
-		NavigationActions: navigationActions,
-		OutcomeActions: outcomeActions,
-		ReadingActions: readingActions,
-		SessionActions: sessionActions,
+		// Actions
+		Actions: actions,
 
-		// CONTEXT
-		Context: context,
+		// Config
+		Config: config,
 
-		// ENTITIES
+		// Envelope
+		Envelope: envelope,
+
+		// Entities
 		Entity: entity,
+		EntityFactory: entityFactory,
 		EntityType: entityType,
 
-		// Core entities
-		DigitalResource: digitalResource,
-		DigitalResourceType: digitalResourceType,
-		LearningObjective: learningObjective,
-
-		// Agent entities
-		Organization: organization,
+		// Agents
+		Agent: agent,
 		Person: person,
 		SoftwareApplication: softwareApplication,
 
-		// Annotation entities
+		// Agents (Organizations)
+		CourseOffering: courseOffering,
+		CourseSection: courseSection,
+		Group: group,
+		Membership: membership,
+		Organization: organization,
+		Role: role,
+		Status: status,
+
+		// Annotations
 		Annotation: annotation,
-		AnnotationType: annotationType,
 		BookmarkAnnotation: bookmarkAnnotation,
 		HighlightAnnotation: highlightAnnotation,
 		SharedAnnotation: sharedAnnotation,
 		TagAnnotation: tagAnnotation,
 
-		// Assignment entities
+		// Assignment-related
+		Attempt: attempt,
+		LearningObjective: learningObjective,
+
+		// Resources
 		Assessment: assessment,
 		AssessmentItem: assessmentItem,
-
-		// Assignable entities
 		AssignableDigitalResource: assignableDigitalResource,
-		AssignableDigitalResourceType: assignableDigitalResourceType,
-		Attempt: attempt,
-
-		// LIS entities
-		CourseOffering: courseOffering,
-		CourseSection: courseSection,
-		Group: group,
-		Membership: membership,
-		Role: role,
-		Status: status,
-
-		// Media Entities
-		MediaObject: mediaObject,
-		MediaObjectType: mediaObjectType,
-		MediaLocation: mediaLocation,
 		AudioObject: audioObject,
-		ImageObject: imageObject,
-		VideoObject: videoObject,
-
-		// Outcome Entities
-		Result: result,
-
-		// Reading Entities
-		EPubChapter: ePubChapter,
-		EPubPart: ePubPart,
-		EPubSubChapter: ePubSubChapter,
-		EPubVolume: ePubVolume,
+		Chapter: chapter,
+		DigitalResource: digitalResource,
+		DigitalResourceCollection: digitalResourceCollection,
+		Document: document,
+		Forum: forum,
 		Frame: frame,
-		Reading: reading,
+		ImageObject: imageObject,
+		MediaObject: mediaObject,
+		MediaLocation: mediaLocation,
+		Message: message,
+		Page: page,
+		Thread: thread,
+		VideoObject: videoObject,
 		WebPage: webPage,
 
-		// Response Entities
+		// Outcome
+		Result: result,
+		Score: score,
+
+		// Response
 		Response: response,
-		ResponseType: responseType,
 		FillinBlankResponse: fillinBlankResponse,
 		MultipleChoiceResponse: multipleChoiceResponse,
 		MultipleResponseResponse: multipleResponseResponse,
 		SelectTextResponse: selectTextResponse,
 		TrueFalseResponse: trueFalseResponse,
 
-		// Session Entities
+		// Session
 		Session: session,
+		LtiSession: ltiSession,
 
-		// EVENTS
+		// Events
 		Event: event,
+		EventFactory: eventFactory,
 		EventType: eventType,
 		AnnotationEvent: annotationEvent,
 		AssessmentEvent: assessmentEvent,
 		AssessmentItemEvent: assessmentItemEvent,
 		AssignableEvent: assignableEvent,
+		ForumEvent: forumEvent,
 		MediaEvent: mediaEvent,
+		MessageEvent: messageEvent,
 		NavigationEvent: navigationEvent,
-		OutcomeEvent: outcomeEvent,
+		GradeEvent: gradeEvent,
 		SessionEvent: sessionEvent,
+		ThreadEvent: threadEvent,
+		ToolUseEvent: toolUseEvent,
 		ViewEvent: viewEvent,
 
-		// REQUEST
-		Envelope: envelope,
-		EventStoreRequestor: eventStoreRequestor,
-		HttpRequestor: httpRequestor
+		// Selectors
+		TextPositionSelector: textPositionSelector,
+
+		// Sensor clients
+		ClientUtils: clientUtils,
+		HttpClient: httpClient,
+		HttpOptions: httpOptions,
+
+		// Validators
+		Validator: validator,
+		EntityValidator: entityValidator,
+		EventValidator: eventValidator
 };
